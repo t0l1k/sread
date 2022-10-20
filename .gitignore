@@ -1,0 +1,6 @@
+*.db
+*.bak
+*.txt
+go.sum
+*.exe
+texts
