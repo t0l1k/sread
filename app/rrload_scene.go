@@ -33,10 +33,9 @@ func NewRRLoadScene() *RRLoadScene {
 	s.Add(s.btnNewFile)
 	s.btnNewClip = ui.NewButton("Read from clipboard", rect, bbg, bfg, func(b *ui.Button) {
 		sc := NewRapidReadScene()
-		name := "1.txt"
-		sc.LoadBook(name)
+		sc.LoadBookFromClipboard()
 		ui.GetUi().Push(sc)
-		log.Printf("Begin new book read from clipboard %v", name)
+		log.Printf("Begin new book read from clipboard.")
 	})
 	s.Add(s.btnNewClip)
 	s.btnCont = ui.NewButton("Continue read last", rect, bbg, bfg, func(b *ui.Button) {
