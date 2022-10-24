@@ -54,6 +54,18 @@ func (b *Button) Layout() {
 	b.Dirty = false
 }
 
+func (b *Button) GetText() string {
+	return b.text
+}
+
+func (b *Button) SetText(value string) {
+	if b.text == value {
+		return
+	}
+	b.text = value
+	b.Dirty = true
+}
+
 func (b *Button) SetFocus(value bool) {
 	if b.focus == value {
 		return

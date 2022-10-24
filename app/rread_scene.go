@@ -1,18 +1,14 @@
 package app
 
 import (
-	"bufio"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/t0l1k/sread/ui"
-	"golang.design/x/clipboard"
 )
 
 type RapidReadScene struct {
@@ -49,63 +45,32 @@ func (r *RapidReadScene) SetDelay(delay int) int {
 	return int(time.Duration(1.0/float64(delay)*float64(time.Minute)) / 1e6)
 }
 
+func (r *RapidReadScene) LoadBookFromHistory(name string) {
+	r.book = GetHistory().LoadBookByFilename(name)
+	r.book.NextParagraph()
+	r.paragraph = newParagraph(r.book.Value())
+	r.getNextWord()
+	r.inGame = true
+	log.Println("Loaded text from clipboard.")
+}
+
 func (r *RapidReadScene) LoadBookFromClipboard() {
-	err := clipboard.Init()
-	if err != nil {
-		panic(err)
-	}
-	txt := clipboard.Read(clipboard.FmtText)
-	r.book = newBook()
-	r.book.Add(string(txt))
+	r.book = LoadBookAndSaveFromClipboard()
 	r.book.NextParagraph()
 	r.paragraph = newParagraph(r.book.Value())
 	r.getNextWord()
 	r.inGame = true
-
-	if _, err := os.Stat("texts"); os.IsNotExist(err) {
-		err := os.Mkdir("texts", os.ModePerm)
-		if err != nil {
-			panic(err)
-		}
-	}
-	id := uuid.New()
-	name := id.String()
-	err = os.WriteFile(fmt.Sprintf("texts/%v.txt", name), txt, 0644)
-	if err != nil {
-		panic(err)
-	}
+	log.Println("Loaded text from clipboard.")
 }
 
-func (r *RapidReadScene) LoadBookFrom(filename string, paragraph, word int) {
-	r.loadTextFile(filename)
-	r.book.SetParagraph(paragraph)
-	r.paragraph = newParagraph(r.book.Value())
-	r.paragraph.SetWord(word)
-	r.getNextWord()
-	r.inGame = true
-}
-
-func (r *RapidReadScene) LoadBook(filename string) {
-	r.loadTextFile(filename)
-	r.book.NextParagraph()
-	r.paragraph = newParagraph(r.book.Value())
-	r.getNextWord()
-	r.inGame = true
-}
-
-func (r *RapidReadScene) loadTextFile(filename string) {
-	rfile, err := os.Open(filename)
-	if err != nil {
-		panic(err)
-	}
-	defer rfile.Close()
-	fscanner := bufio.NewScanner(rfile)
-	fscanner.Split(bufio.ScanLines)
-	r.book = newBook()
-	for fscanner.Scan() {
-		r.book.Add(fscanner.Text())
-	}
-}
+// func (r *RapidReadScene) LoadBookFrom(filename string, paragraph, word int) {
+// 	r.loadTextFile(filename)
+// 	r.book.SetParagraph(paragraph)
+// 	r.paragraph = newParagraph(r.book.Value())
+// 	r.paragraph.SetWord(word)
+// 	r.getNextWord()
+// 	r.inGame = true
+// }
 
 func (r *RapidReadScene) Update(dt int) {
 	if r.inGame {
@@ -123,10 +88,12 @@ func (r *RapidReadScene) Update(dt int) {
 
 func (r *RapidReadScene) getNextWord() {
 	if r.paragraph.NextWord() {
-		r.rrLabel.SetText(r.paragraph.Value())
+		word := r.paragraph.Value()
+		r.rrLabel.SetText(word)
 	} else {
 		if r.book.NextParagraph() {
-			r.paragraph = newParagraph(r.book.Value())
+			par := r.book.Value()
+			r.paragraph = newParagraph(par)
 		} else {
 			r.inGame = false
 		}
@@ -138,8 +105,9 @@ func (r *RapidReadScene) checkKeypress() {
 		r.inGame = !r.inGame
 		ui.GetUi().ShowNotification("toggle pause")
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyUp) {
-		if r.wordsPerMinute < 1000 {
+		if r.wordsPerMinute < 20000 {
 			r.wordsPerMinute += 50
+			ui.GetPreferences().Set("default words per minute speed", r.wordsPerMinute)
 			r.delay = r.SetDelay(r.wordsPerMinute)
 			r.rrLabel.SetWordsPerMinute(strconv.Itoa(r.wordsPerMinute))
 		}
@@ -148,6 +116,7 @@ func (r *RapidReadScene) checkKeypress() {
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyDown) {
 		if r.wordsPerMinute > 50 {
 			r.wordsPerMinute -= 50
+			ui.GetPreferences().Set("default words per minute speed", r.wordsPerMinute)
 			r.delay = r.SetDelay(r.wordsPerMinute)
 			r.rrLabel.SetWordsPerMinute(strconv.Itoa(r.wordsPerMinute))
 		}
@@ -163,7 +132,7 @@ func (r *RapidReadScene) Draw(surface *ebiten.Image) {
 }
 
 func (r *RapidReadScene) Entered() {
-	r.wordsPerMinute = 250
+	r.wordsPerMinute = ui.GetPreferences().Get("default words per minute speed").(int)
 	r.delay = r.SetDelay(r.wordsPerMinute)
 	r.Resize()
 }

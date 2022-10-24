@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"strings"
+	"unicode"
 )
 
 type book struct {
@@ -22,6 +23,9 @@ func (b *book) SetParagraph(idx int) {
 }
 
 func (b *book) Add(value string) {
+	if len(split(value)) == 0 {
+		return
+	}
 	b.data = append(b.data, value)
 }
 
@@ -47,7 +51,7 @@ type paragraph struct {
 func newParagraph(value string) *paragraph {
 	p := &paragraph{
 		current: -1,
-		data:    strings.Fields(value),
+		data:    split(value),
 	}
 	return p
 }
@@ -68,4 +72,15 @@ func (p *paragraph) NextWord() bool {
 
 func (p *paragraph) String() string {
 	return fmt.Sprintf("%v %v", p.current, p.data[p.current])
+}
+
+func split(value string) []string {
+	return strings.FieldsFunc(value, func(r rune) bool {
+		if unicode.IsSpace(r) {
+			return true
+		} else if r == '-' {
+			return true
+		}
+		return false
+	})
 }

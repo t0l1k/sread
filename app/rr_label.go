@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"image/color"
+	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -39,7 +40,7 @@ func NewRRLabel(txt string, rect []int, bg, fg, fg2 color.Color, fontSize int) *
 		fg2:            fg2,
 		fontFace:       fontFace,
 		y:              y,
-		wordsPerMinute: "250",
+		wordsPerMinute: strconv.Itoa(ui.GetPreferences().Get("default words per minute speed").(int)),
 	}
 }
 
