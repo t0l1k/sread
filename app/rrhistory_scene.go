@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/t0l1k/sread/ui"
 )
@@ -24,24 +22,29 @@ func NewRRHistoryScene() *RRHistoryScene {
 		ui.GetUi().Pop()
 	})
 	s.Add(s.btnQuit)
+	return s
+}
 
-	for _, v := range GetHistory().GetList() {
+func (s *RRHistoryScene) setupHistory() {
+	rect := []int{0, 0, 1, 1}
+	bbg, bfg := ui.GetTheme().Get("button bg"), ui.GetTheme().Get("button fg")
+	s.txtsLst = nil
+	for _, v := range GetDb().GetNames() {
 		btn := ui.NewButton(v, rect, bbg, bfg, s.loadBook)
 		s.txtsLst = append(s.txtsLst, btn)
 		s.Add(btn)
 	}
-
-	return s
 }
 
 func (r *RRHistoryScene) loadBook(b *ui.Button) {
-	fmt.Println(b.GetText())
+	ui.GetUi().Pop()
 	sc := NewRapidReadScene()
 	sc.LoadBookFromHistory(b.GetText())
 	ui.GetUi().Push(sc)
 }
 
 func (r *RRHistoryScene) Entered() {
+	r.setupHistory()
 	r.Resize()
 }
 

@@ -2,85 +2,75 @@ package app
 
 import (
 	"fmt"
-	"strings"
-	"unicode"
+	"os"
+
+	"github.com/t0l1k/sread/ui"
 )
 
-type book struct {
-	current int
-	data    []string
+type readStatus int
+
+const (
+	start readStatus = iota
+	inReading
+	finished
+)
+
+type Book struct {
+	dt, filename, name string //create time or last access time, filename in drive, name in list
+	count, lastSpeed   int    // read count, last read speed
+	size               int64
+	idxA, idxB         int // index in book, int paragraph
+	paragraps          *paragraphs
+	status             readStatus
 }
 
-func newBook() *book {
-	b := &book{
-		current: -1,
+func newBook() *Book {
+	speed := ui.GetPreferences().Get("default words per minute speed").(int)
+	return &Book{
+		count:     1,
+		lastSpeed: speed,
+		idxA:      0,
+		idxB:      0,
+		status:    start,
 	}
-	return b
 }
 
-func (b *book) SetParagraph(idx int) {
-	b.current = idx - 1
-}
-
-func (b *book) Add(value string) {
-	if len(split(value)) == 0 {
-		return
+func (t *Book) Setup() {
+	info, err := os.Stat(t.filename)
+	if err != nil {
+		panic(err)
 	}
-	b.data = append(b.data, value)
+	t.dt = info.ModTime().Format("2006-01-02 15:04:05")
+	t.size = info.Size()
+	t.paragraps = loadBook(t.filename)
+	t.name = t.paragraps.data[0]
+	fmt.Println("Setup book:", len(t.paragraps.data), t.name[0])
 }
 
-func (b *book) Value() string {
-	return b.data[b.current]
-}
-
-func (b *book) NextParagraph() bool {
-	b.current++
-	return len(b.data) > b.current
-
-}
-
-func (b *book) String() string {
-	return fmt.Sprintf("%v %v", b.current, b.data[b.current])
-}
-
-type paragraph struct {
-	current int
-	data    []string
-}
-
-func newParagraph(value string) *paragraph {
-	p := &paragraph{
-		current: -1,
-		data:    split(value),
+func (t *Book) Update(idxa, idxb, lastspeed int, status readStatus) {
+	t.count += 1
+	t.idxA = idxa
+	if idxb > 0 {
+		idxb -= 1
 	}
-	return p
+	t.idxB = idxb
+	t.lastSpeed = lastspeed
+	t.status = status
 }
 
-func (p *paragraph) SetWord(idx int) {
-	p.current = idx - 1
+func (t *Book) GetBook() *paragraphs {
+	return t.paragraps
 }
 
-func (p *paragraph) Value() string {
-	return p.data[p.current]
+func (t *Book) GetName() string {
+	return t.name
 }
 
-func (p *paragraph) NextWord() bool {
-	p.current++
-	return len(p.data) > p.current
-
+func (t *Book) GetFileName() string {
+	return t.filename
 }
 
-func (p *paragraph) String() string {
-	return fmt.Sprintf("%v %v", p.current, p.data[p.current])
-}
-
-func split(value string) []string {
-	return strings.FieldsFunc(value, func(r rune) bool {
-		if unicode.IsSpace(r) {
-			return true
-		} else if r == '-' {
-			return true
-		}
-		return false
-	})
+func (t *Book) String() string {
+	s := fmt.Sprintf("Book:%v, read %v times, last read %v times, at speed:%v, from:%v, size:%v status:%v", t.name, t.count, t.dt, t.lastSpeed, t.filename, t.size, t.status)
+	return s
 }

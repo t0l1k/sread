@@ -8,7 +8,6 @@ func NewApp() *ui.Ui {
 	a.SetupTheme(NewTheme())
 	a.SetupScreen("Rapid Read")
 	a.Push(NewRRLoadScene())
-	GetHistory().Setup()
 	return a
 }
 
@@ -25,6 +24,7 @@ func NewTheme() *ui.Theme {
 func LoadSettings() *ui.Preferences {
 	s := ui.NewPreferences()
 	s.Set("fullscreen", false)
-	s.Set("default words per minute speed", 250)
+	s.Set("default words per minute speed", 300)
+	s.Set("step", 60)
 	return &s
 }

@@ -1,74 +1,23 @@
 package app
 
 import (
-	"fmt"
-	"path/filepath"
+	"log"
 )
 
-var historyInstance *History = nil
-
-func init() {
-	historyInstance = GetHistory()
-}
-
-func GetHistory() (h *History) {
-	if historyInstance == nil {
-		h = newHistory()
-	} else {
-		h = historyInstance
-	}
-	return h
-}
-
 type History struct {
-	count  int
-	values map[int]*Txt
+	count int
+	books map[int]*Book
 }
 
-func newHistory() *History { return &History{values: map[int]*Txt{}} }
-
-func (h *History) LoadBookByFilename(value string) *book {
-	for _, v := range h.values {
-		if v.name == value {
-			return v.book
-		}
-	}
-	return nil
-}
-
-func (h *History) Setup() {
-	h.ReadTextsFromWorkDir()
-}
-
-func (h *History) ReadTextsFromWorkDir() {
-	files, err := filepath.Glob("texts/*.txt")
-	if err != nil {
-		panic(err)
-	}
-	for _, v := range files {
-		t := newTxt()
-		t.filename = v
-		t.Setup()
-		fmt.Println(":>", v, t.ShortString())
+func newHistory() *History {
+	return &History{
+		books: make(map[int]*Book),
 	}
 }
 
-func (h *History) Add(value *Txt) {
-	h.count += 1
-	h.values[h.count] = value
-}
-
-func (h *History) GetList() (strs []string) {
-	for _, v := range h.values {
-		strs = append(strs, v.ShortString())
-	}
-	return
-}
-
-func (h *History) String() string {
-	s := ""
-	for k, v := range h.values {
-		s += fmt.Sprintf("%v: %v\n", k, v)
-	}
-	return s
+func (h *History) New(id int, value *Book) {
+	h.count = id
+	h.books[h.count] = value
+	h.books[h.count].Setup()
+	log.Println("Added book", h.books[h.count])
 }

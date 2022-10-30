@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -16,12 +15,13 @@ type RapidReadScene struct {
 	container      []ui.Drawable
 	btnQuit        *ui.Button
 	rrLabel        *RRLabel
-	paragraph      *paragraph
 	inGame         bool
 	delay          int
 	dt             int
 	wordsPerMinute int
-	book           *book
+	paragraphs     *paragraphs
+	paragraph      *paragraph
+	book           *Book
 }
 
 func NewRapidReadScene() *RapidReadScene {
@@ -42,35 +42,39 @@ func NewRapidReadScene() *RapidReadScene {
 }
 
 func (r *RapidReadScene) SetDelay(delay int) int {
-	return int(time.Duration(1.0/float64(delay)*float64(time.Minute)) / 1e6)
+	return int(60 / float64(delay) * 1000)
 }
 
-func (r *RapidReadScene) LoadBookFromHistory(name string) {
-	r.book = GetHistory().LoadBookByFilename(name)
-	r.book.NextParagraph()
-	r.paragraph = newParagraph(r.book.Value())
+func (r *RapidReadScene) LoadBookFromHistory(filename string) {
+	r.book = LoadBookByFilename(filename)
+	log.Printf("Loaded file:%v from history at %v %v.", r.book.filename, r.book.idxA, r.book.idxB)
+	if r.book.status == finished {
+		r.book.idxA = 0
+		r.book.idxB = 0
+	}
+	r.paragraphs = r.book.paragraps
+	r.paragraphs.Set(r.book.idxA)
+	r.paragraphs.NextParagraph()
+	r.paragraph = newParagraph(r.paragraphs.Value())
+	r.paragraph.SetWord(r.book.idxB)
 	r.getNextWord()
+	r.wordsPerMinute = r.book.lastSpeed
+	ui.GetPreferences().Set("default words per minute speed", r.wordsPerMinute)
+	r.delay = r.SetDelay(r.wordsPerMinute)
+	r.rrLabel.SetWordsPerMinute(strconv.Itoa(r.wordsPerMinute))
 	r.inGame = true
-	log.Println("Loaded text from clipboard.")
 }
 
 func (r *RapidReadScene) LoadBookFromClipboard() {
 	r.book = LoadBookAndSaveFromClipboard()
-	r.book.NextParagraph()
-	r.paragraph = newParagraph(r.book.Value())
+	r.paragraphs = r.book.paragraps
+	r.paragraphs.NextParagraph()
+	r.paragraph = newParagraph(r.paragraphs.Value())
 	r.getNextWord()
+	r.book.status = inReading
 	r.inGame = true
 	log.Println("Loaded text from clipboard.")
 }
-
-// func (r *RapidReadScene) LoadBookFrom(filename string, paragraph, word int) {
-// 	r.loadTextFile(filename)
-// 	r.book.SetParagraph(paragraph)
-// 	r.paragraph = newParagraph(r.book.Value())
-// 	r.paragraph.SetWord(word)
-// 	r.getNextWord()
-// 	r.inGame = true
-// }
 
 func (r *RapidReadScene) Update(dt int) {
 	if r.inGame {
@@ -91,22 +95,24 @@ func (r *RapidReadScene) getNextWord() {
 		word := r.paragraph.Value()
 		r.rrLabel.SetText(word)
 	} else {
-		if r.book.NextParagraph() {
-			par := r.book.Value()
+		if r.paragraphs.NextParagraph() {
+			par := r.paragraphs.Value()
 			r.paragraph = newParagraph(par)
 		} else {
+			r.book.status = finished
 			r.inGame = false
 		}
 	}
 }
 
 func (r *RapidReadScene) checkKeypress() {
+	step := ui.GetPreferences().Get("step").(int)
 	if inpututil.IsKeyJustReleased(ebiten.KeySpace) {
 		r.inGame = !r.inGame
 		ui.GetUi().ShowNotification("toggle pause")
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyUp) {
-		if r.wordsPerMinute < 20000 {
-			r.wordsPerMinute += 50
+		if r.wordsPerMinute < step*300 {
+			r.wordsPerMinute += step
 			ui.GetPreferences().Set("default words per minute speed", r.wordsPerMinute)
 			r.delay = r.SetDelay(r.wordsPerMinute)
 			r.rrLabel.SetWordsPerMinute(strconv.Itoa(r.wordsPerMinute))
@@ -114,8 +120,8 @@ func (r *RapidReadScene) checkKeypress() {
 		ui.GetUi().ShowNotification(fmt.Sprintf("Speed up words per minute:%v", r.wordsPerMinute))
 		log.Printf("now words per minute:%v delay is:%vms", r.wordsPerMinute, r.delay)
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyDown) {
-		if r.wordsPerMinute > 50 {
-			r.wordsPerMinute -= 50
+		if r.wordsPerMinute > step {
+			r.wordsPerMinute -= step
 			ui.GetPreferences().Set("default words per minute speed", r.wordsPerMinute)
 			r.delay = r.SetDelay(r.wordsPerMinute)
 			r.rrLabel.SetWordsPerMinute(strconv.Itoa(r.wordsPerMinute))
@@ -153,7 +159,9 @@ func (r *RapidReadScene) Resize() {
 }
 
 func (r *RapidReadScene) Quit() {
-	fmt.Println("Quit at index:", r.book.current, r.paragraph.current)
+	log.Printf("Quit reading at idxA:%v, idxB:%v with speed:%v", r.paragraphs.current, r.paragraph.current, r.wordsPerMinute)
+	r.book.Update(r.paragraphs.current, r.paragraph.current, r.wordsPerMinute, r.book.status)
+	GetDb().UpdateBook(r.book)
 	for _, v := range r.container {
 		v.Close()
 	}
