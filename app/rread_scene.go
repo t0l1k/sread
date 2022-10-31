@@ -47,10 +47,12 @@ func (r *RapidReadScene) SetDelay(delay int) int {
 
 func (r *RapidReadScene) LoadBookFromHistory(filename string) {
 	r.book = LoadBookByFilename(filename)
+	r.book.Setup()
 	log.Printf("Loaded file:%v from history at %v %v.", r.book.filename, r.book.idxA, r.book.idxB)
 	if r.book.status == finished {
 		r.book.idxA = 0
 		r.book.idxB = 0
+		r.book.status = inReading
 	}
 	r.paragraphs = r.book.paragraps
 	r.paragraphs.Set(r.book.idxA)

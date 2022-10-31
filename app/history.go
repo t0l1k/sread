@@ -18,6 +18,5 @@ func newHistory() *History {
 func (h *History) New(id int, value *Book) {
 	h.count = id
 	h.books[h.count] = value
-	h.books[h.count].Setup()
 	log.Println("Added book", h.books[h.count])
 }

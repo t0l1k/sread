@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/t0l1k/sread/ui"
@@ -43,8 +44,12 @@ func (t *Book) Setup() {
 	t.dt = info.ModTime().Format("2006-01-02 15:04:05")
 	t.size = info.Size()
 	t.paragraps = loadBook(t.filename)
-	t.name = t.paragraps.data[0]
-	fmt.Println("Setup book:", len(t.paragraps.data), t.name[0])
+	tmp := []rune(t.paragraps.data[0])
+	if len(tmp) >= 80 {
+		tmp = tmp[0:50]
+	}
+	t.name = string(tmp)
+	log.Println("Setup book:", len(t.paragraps.data), t.name)
 }
 
 func (t *Book) Update(idxa, idxb, lastspeed int, status readStatus) {

@@ -49,7 +49,7 @@ func LoadBookByFilename(name string) *Book {
 	books := GetDb().GetFromDbHistory()
 	for _, v := range books.books {
 		if v.name == name {
-			log.Printf("Found: load by filename %v %v", v, len(v.GetBook().data))
+			log.Printf("Found:%v", v)
 			return v
 		}
 	}
