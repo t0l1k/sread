@@ -38,7 +38,7 @@ func (d *Db) createBooksTable() {
 	if err != nil {
 		panic(err)
 	}
-	var createGameDB string = "CREATE TABLE IF NOT EXISTS books(id INTEGER PRIMARY KEY AUTOINCREMENT,filename TEXT, name TEXT, dt TEXT, count INTEGER, idxa INTEGER, idxb INTEGER, lastspeed INTEGER, status INTEGER)"
+	var createGameDB string = "CREATE TABLE IF NOT EXISTS books(id INTEGER PRIMARY KEY AUTOINCREMENT,filename TEXT, name TEXT, dt TEXT, count INTEGER, idx INTEGER, lastspeed INTEGER, status INTEGER)"
 	cur, err := d.conn.Prepare(createGameDB)
 	if err != nil {
 		panic(err)
@@ -52,7 +52,7 @@ func (d *Db) InsertBook(values *Book) {
 	if d.conn == nil {
 		d.Setup()
 	}
-	insStr := "INSERT INTO books(filename, name, dt, count, idxa, idxb, lastspeed, status) VALUES(?,?,?,?,?,?,?,?)"
+	insStr := "INSERT INTO books(filename, name, dt, count, idx, lastspeed, status) VALUES(?,?,?,?,?,?,?)"
 	cur, err := d.conn.Prepare(insStr)
 	if err != nil {
 		log.Println("Error in DB:", insStr, values)
@@ -63,18 +63,17 @@ func (d *Db) InsertBook(values *Book) {
 	name := values.name
 	dt := values.dt
 	count := values.count
-	idxa := values.idxA
-	idxb := values.idxB
+	idx := values.idx
 	lastspeed := values.lastSpeed
 	status := values.status
-	cur.Exec(filename, name, dt, count, idxa, idxb, lastspeed, status)
+	cur.Exec(filename, name, dt, count, idx, lastspeed, status)
 	log.Println("DB:Inserted:", values)
 }
 
 func (d *Db) UpdateBook(values *Book) {
 	fmt.Println(values)
-	updateStr := `UPDATE "books" SET count = ? , idxa = ? , idxb = ? , lastspeed = ? , status = ? WHERE filename = ?`
-	res, err := d.conn.Exec(updateStr, values.count, values.idxA, values.idxB, values.
+	updateStr := `UPDATE "books" SET count = ? , idx = ? , lastspeed = ? , status = ? WHERE filename = ?`
+	res, err := d.conn.Exec(updateStr, values.count, values.idx, values.
 		lastSpeed, values.status, values.filename)
 	if err != nil {
 		fmt.Println(updateStr, err)
@@ -100,7 +99,7 @@ func (d *Db) GetFromDbHistory() *History {
 	for rows.Next() {
 		txt := newBook()
 		id := 0
-		err = rows.Scan(&id, &txt.filename, &txt.name, &txt.dt, &txt.count, &txt.idxA, &txt.idxB, &txt.lastSpeed, &txt.status)
+		err = rows.Scan(&id, &txt.filename, &txt.name, &txt.dt, &txt.count, &txt.idx, &txt.lastSpeed, &txt.status)
 		if err != nil && err != sql.ErrNoRows {
 			panic(err)
 		}
@@ -123,7 +122,7 @@ func (d *Db) GetNames() []string {
 	for rows.Next() {
 		book := newBook()
 		id := 0
-		err = rows.Scan(&id, &book.filename, &book.name, &book.dt, &book.count, &book.idxA, &book.idxB, &book.lastSpeed, &book.status)
+		err = rows.Scan(&id, &book.filename, &book.name, &book.dt, &book.count, &book.idx, &book.lastSpeed, &book.status)
 		if err != nil && err != sql.ErrNoRows {
 			panic(err)
 		}

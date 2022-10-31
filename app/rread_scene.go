@@ -19,8 +19,6 @@ type RapidReadScene struct {
 	delay          int
 	dt             int
 	wordsPerMinute int
-	paragraphs     *paragraphs
-	paragraph      *paragraph
 	book           *Book
 }
 
@@ -48,17 +46,12 @@ func (r *RapidReadScene) SetDelay(delay int) int {
 func (r *RapidReadScene) LoadBookFromHistory(filename string) {
 	r.book = LoadBookByFilename(filename)
 	r.book.Setup()
-	log.Printf("Loaded file:%v from history at %v %v.", r.book.filename, r.book.idxA, r.book.idxB)
+	log.Printf("Loaded file:%v from history at %v.", r.book.filename, r.book.idx)
 	if r.book.status == finished {
-		r.book.idxA = 0
-		r.book.idxB = 0
+		r.book.idx = 0
 		r.book.status = inReading
 	}
-	r.paragraphs = r.book.paragraps
-	r.paragraphs.Set(r.book.idxA)
-	r.paragraphs.NextParagraph()
-	r.paragraph = newParagraph(r.paragraphs.Value())
-	r.paragraph.SetWord(r.book.idxB)
+	r.book.data.SetWord(r.book.idx)
 	r.getNextWord()
 	r.wordsPerMinute = r.book.lastSpeed
 	ui.GetPreferences().Set("default words per minute speed", r.wordsPerMinute)
@@ -69,9 +62,6 @@ func (r *RapidReadScene) LoadBookFromHistory(filename string) {
 
 func (r *RapidReadScene) LoadBookFromClipboard() {
 	r.book = LoadBookAndSaveFromClipboard()
-	r.paragraphs = r.book.paragraps
-	r.paragraphs.NextParagraph()
-	r.paragraph = newParagraph(r.paragraphs.Value())
 	r.getNextWord()
 	r.book.status = inReading
 	r.inGame = true
@@ -93,17 +83,12 @@ func (r *RapidReadScene) Update(dt int) {
 }
 
 func (r *RapidReadScene) getNextWord() {
-	if r.paragraph.NextWord() {
-		word := r.paragraph.Value()
+	if r.book.data.NextWord() {
+		word := r.book.data.Value()
 		r.rrLabel.SetText(word)
 	} else {
-		if r.paragraphs.NextParagraph() {
-			par := r.paragraphs.Value()
-			r.paragraph = newParagraph(par)
-		} else {
-			r.book.status = finished
-			r.inGame = false
-		}
+		r.book.status = finished
+		r.inGame = false
 	}
 }
 
@@ -161,8 +146,8 @@ func (r *RapidReadScene) Resize() {
 }
 
 func (r *RapidReadScene) Quit() {
-	log.Printf("Quit reading at idxA:%v, idxB:%v with speed:%v", r.paragraphs.current, r.paragraph.current, r.wordsPerMinute)
-	r.book.Update(r.paragraphs.current, r.paragraph.current, r.wordsPerMinute, r.book.status)
+	log.Printf("Quit reading at idx:%v with speed:%v", r.book.data.current, r.wordsPerMinute)
+	r.book.Update(r.book.data.current, r.wordsPerMinute, r.book.status)
 	GetDb().UpdateBook(r.book)
 	for _, v := range r.container {
 		v.Close()

@@ -19,9 +19,9 @@ const (
 type Book struct {
 	dt, filename, name string //create time or last access time, filename in drive, name in list
 	count, lastSpeed   int    // read count, last read speed
-	size               int64
-	idxA, idxB         int // index in book, int paragraph
-	paragraps          *paragraphs
+	size               int
+	idx                int // index in book, int paragraph
+	data               *paragraph
 	status             readStatus
 }
 
@@ -30,8 +30,7 @@ func newBook() *Book {
 	return &Book{
 		count:     1,
 		lastSpeed: speed,
-		idxA:      0,
-		idxB:      0,
+		idx:       0,
 		status:    start,
 	}
 }
@@ -42,29 +41,25 @@ func (t *Book) Setup() {
 		panic(err)
 	}
 	t.dt = info.ModTime().Format("2006-01-02 15:04:05")
-	t.size = info.Size()
-	t.paragraps = loadBook(t.filename)
-	tmp := []rune(t.paragraps.data[0])
+	var tmp1 string
+	t.data, tmp1 = loadBook(t.filename)
+	tmp := []rune(tmp1)
 	if len(tmp) >= 80 {
 		tmp = tmp[0:50]
 	}
 	t.name = string(tmp)
-	log.Println("Setup book:", len(t.paragraps.data), t.name)
+	t.size = t.data.Size()
+	log.Println("Setup book:", len(t.data.data), t.name)
 }
 
-func (t *Book) Update(idxa, idxb, lastspeed int, status readStatus) {
+func (t *Book) Update(idx, lastspeed int, status readStatus) {
 	t.count += 1
-	t.idxA = idxa
-	if idxb > 0 {
-		idxb -= 1
+	if idx > 0 {
+		idx -= 1
 	}
-	t.idxB = idxb
+	t.idx = idx
 	t.lastSpeed = lastspeed
 	t.status = status
-}
-
-func (t *Book) GetBook() *paragraphs {
-	return t.paragraps
 }
 
 func (t *Book) GetName() string {
@@ -76,6 +71,6 @@ func (t *Book) GetFileName() string {
 }
 
 func (t *Book) String() string {
-	s := fmt.Sprintf("Book:%v, read %v times, last read %v times, at speed:%v, from:%v, size:%v status:%v", t.name, t.count, t.dt, t.lastSpeed, t.filename, t.size, t.status)
+	s := fmt.Sprintf("Book:%v, read %v times, last read %v times, at speed:%v, from:%v, size:%v status:%v idx:%v", t.name, t.count, t.dt, t.lastSpeed, t.filename, t.size, t.status, t.idx)
 	return s
 }

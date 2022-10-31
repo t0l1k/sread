@@ -3,8 +3,11 @@ package app
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"strings"
+	"unicode"
 
 	"github.com/google/uuid"
 	"golang.design/x/clipboard"
@@ -56,18 +59,34 @@ func LoadBookByFilename(name string) *Book {
 	return nil
 }
 
-func loadBook(filename string) *paragraphs {
+func loadBook(filename string) (*paragraph, string) {
 	rfile, err := os.Open(filename)
 	if err != nil {
 		panic(err)
 	}
 	defer rfile.Close()
-	fscanner := bufio.NewScanner(rfile)
-	fscanner.Split(bufio.ScanLines)
-	book := newParagraphs()
-	for fscanner.Scan() {
-		w := fscanner.Text()
+	fs := bufio.NewScanner(rfile)
+	fs.Split(bufio.ScanWords)
+	book := newParagraph()
+	for fs.Scan() {
+		w := fs.Text()
 		book.Add(w)
 	}
-	return book
+	rfile.Seek(0, io.SeekStart)
+	fscanner := bufio.NewScanner(rfile)
+	fscanner.Split(bufio.ScanLines)
+	fscanner.Scan()
+	name := fscanner.Text()
+	return book, name
+}
+
+func split(value string) []string {
+	return strings.FieldsFunc(value, func(r rune) bool {
+		if unicode.IsSpace(r) {
+			return true
+		} else if r == '-' {
+			return true
+		}
+		return false
+	})
 }
