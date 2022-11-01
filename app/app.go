@@ -26,5 +26,6 @@ func LoadSettings() *ui.Preferences {
 	s.Set("fullscreen", false)
 	s.Set("default words per minute speed", 300)
 	s.Set("step", 60)
+	s.Set("max word lenght", 30)
 	return &s
 }

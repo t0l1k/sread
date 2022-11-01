@@ -6,10 +6,10 @@ import (
 	"io"
 	"log"
 	"os"
-	"strings"
 	"unicode"
 
 	"github.com/google/uuid"
+	"github.com/t0l1k/sread/ui"
 	"golang.design/x/clipboard"
 )
 
@@ -65,28 +65,64 @@ func loadBook(filename string) (*paragraph, string) {
 		panic(err)
 	}
 	defer rfile.Close()
-	fs := bufio.NewScanner(rfile)
-	fs.Split(bufio.ScanWords)
 	book := newParagraph()
-	for fs.Scan() {
-		w := fs.Text()
-		book.Add(w)
+	ln := ui.GetPreferences().Get("max word lenght").(int)
+	var (
+		w string
+		l int
+	)
+	r := bufio.NewReader(rfile)
+	for {
+		if c, _, err := r.ReadRune(); err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				panic(err)
+			}
+		} else {
+			if checkSeparator(c) {
+				if len(w) > 0 {
+					book.Add(w)
+					w = ""
+					l = 0
+				}
+			} else if l > ln {
+				w += string(c)
+				book.Add(w)
+				w = ""
+				l = 0
+			} else {
+				if checkSeparator(c) {
+					continue
+				}
+				w += string(c)
+				l++
+			}
+		}
 	}
 	rfile.Seek(0, io.SeekStart)
 	fscanner := bufio.NewScanner(rfile)
-	fscanner.Split(bufio.ScanLines)
-	fscanner.Scan()
-	name := fscanner.Text()
-	return book, name
+	fscanner.Split(bufio.ScanWords)
+	var tmp string
+	for fscanner.Scan() {
+		tmp += fscanner.Text() + " "
+		if len(tmp) > 120 {
+			break
+		}
+	}
+	tmp1 := []rune(tmp)
+	if len(tmp1) >= 120 {
+		tmp1 = tmp1[0:120]
+	}
+
+	return book, string(tmp1)
 }
 
-func split(value string) []string {
-	return strings.FieldsFunc(value, func(r rune) bool {
-		if unicode.IsSpace(r) {
-			return true
-		} else if r == '-' {
-			return true
-		}
-		return false
-	})
+func checkSeparator(r rune) bool {
+	if unicode.IsSpace(r) {
+		return true
+	} else if r == '-' {
+		return true
+	}
+	return false
 }

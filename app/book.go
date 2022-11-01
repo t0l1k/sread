@@ -41,13 +41,7 @@ func (t *Book) Setup() {
 		panic(err)
 	}
 	t.dt = info.ModTime().Format("2006-01-02 15:04:05")
-	var tmp1 string
-	t.data, tmp1 = loadBook(t.filename)
-	tmp := []rune(tmp1)
-	if len(tmp) >= 80 {
-		tmp = tmp[0:50]
-	}
-	t.name = string(tmp)
+	t.data, t.name = loadBook(t.filename)
 	t.size = t.data.Size()
 	log.Println("Setup book:", len(t.data.data), t.name)
 }
