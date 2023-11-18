@@ -1,31 +1,12 @@
 package app
 
-import "github.com/t0l1k/sread/ui"
+import "github.com/t0l1k/eui"
 
-func NewApp() *ui.Ui {
-	a := ui.GetUi()
-	a.SetupSettings(LoadSettings())
-	a.SetupTheme(NewTheme())
-	a.SetupScreen("Rapid Read")
-	a.Push(NewRRLoadScene())
+func NewApp() *eui.Ui {
+	a := eui.GetUi()
+	a.SetTitle("Rapid Read")
+	k := 2
+	w, h := 200*k, 200*k
+	a.SetSize(w, h)
 	return a
-}
-
-func NewTheme() *ui.Theme {
-	t := ui.NewTheme()
-	t.Set("bg", ui.Gray)
-	t.Set("fg", ui.Black)
-	t.Set("fg2", ui.Red)
-	t.Set("button bg", ui.GreenYellow)
-	t.Set("button fg", ui.Black)
-	return &t
-}
-
-func LoadSettings() *ui.Preferences {
-	s := ui.NewPreferences()
-	s.Set("fullscreen", false)
-	s.Set("default words per minute speed", 300)
-	s.Set("step", 60)
-	s.Set("max word lenght", 30)
-	return &s
 }

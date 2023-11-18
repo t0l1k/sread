@@ -1,19 +1,17 @@
-package app
+package data
 
 import (
 	"fmt"
 	"log"
 	"os"
-
-	"github.com/t0l1k/sread/ui"
 )
 
 type readStatus int
 
 const (
-	start readStatus = iota
-	inReading
-	finished
+	Start readStatus = iota
+	InReading
+	Finished
 )
 
 type Book struct {
@@ -26,12 +24,12 @@ type Book struct {
 }
 
 func newBook() *Book {
-	speed := ui.GetPreferences().Get("default words per minute speed").(int)
+	speed := 300
 	return &Book{
 		count:     1,
 		lastSpeed: speed,
 		idx:       0,
-		status:    start,
+		status:    Start,
 	}
 }
 
@@ -62,6 +60,30 @@ func (t *Book) GetName() string {
 
 func (t *Book) GetFileName() string {
 	return t.filename
+}
+
+func (t *Book) GetStatus() readStatus {
+	return t.status
+}
+
+func (t *Book) SetStatus(value readStatus) {
+	t.status = value
+}
+
+func (t *Book) GetLastSpeed() int {
+	return t.lastSpeed
+}
+
+func (t *Book) GetIndex() int {
+	return t.idx
+}
+
+func (t *Book) SetIndex(value int) {
+	t.idx = value
+}
+
+func (t *Book) GetParagraph() *paragraph {
+	return t.data
 }
 
 func (t *Book) String() string {

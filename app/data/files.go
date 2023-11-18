@@ -1,4 +1,4 @@
-package app
+package data
 
 import (
 	"bufio"
@@ -9,11 +9,10 @@ import (
 	"unicode"
 
 	"github.com/google/uuid"
-	"github.com/t0l1k/sread/ui"
 	"golang.design/x/clipboard"
 )
 
-func LoadBookAndSaveFromClipboard() *Book {
+func LoadBookFromClipboardAndSave() *Book {
 	t := newBook()
 	t.filename = saveTextFromClipboard()
 	t.Setup()
@@ -66,7 +65,7 @@ func loadBook(filename string) (*paragraph, string) {
 	}
 	defer rfile.Close()
 	book := newParagraph()
-	ln := ui.GetPreferences().Get("max word lenght").(int)
+	ln := 30 //max word lenght
 	var (
 		w string
 		l int
