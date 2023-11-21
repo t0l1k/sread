@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/t0l1k/eui"
+	"github.com/t0l1k/sread/app"
 	"golang.org/x/image/font"
 )
 
@@ -21,15 +22,13 @@ type RRLabel struct {
 }
 
 func NewRRLabel() *RRLabel {
+	theme := eui.GetUi().GetTheme()
 	rr := &RRLabel{
-		bg:       eui.Silver,
-		fg:       eui.Green,
-		fgActive: eui.Red,
+		bg:       theme.Get(app.AppRRLabelBg),
+		fg:       theme.Get(app.AppRRLabelFg),
+		fgActive: theme.Get(app.AppRRLabelFgActive),
 	}
 	return rr
-}
-
-func (l *RRLabel) Update(dt int) {
 }
 
 func (l *RRLabel) Draw(surface *ebiten.Image) {
@@ -101,7 +100,7 @@ func (l *RRLabel) initGlyphs() {
 func (l *RRLabel) drawAttributes(w, h, center int) {
 	ebitenutil.DrawLine(l.image, 0, 0, float64(w), 0, l.fg)
 	ebitenutil.DrawLine(l.image, 0, float64(h)-1, float64(w), float64(h)-1, l.fg)
-	margin := int(float64(l.Rect.GetLowestSize()) * 0.1)
+	margin := int(float64(l.Rect.GetLowestSize()) * 0.15)
 	x0 := center
 	ebitenutil.DrawLine(l.image,
 		float64(x0),

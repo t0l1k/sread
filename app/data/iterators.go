@@ -25,9 +25,30 @@ func (p *paragraph) Value() string {
 	return p.data[p.current]
 }
 
+func (p *paragraph) Index() int {
+	return p.current
+}
+
+func (p *paragraph) IsFirstWorld() bool {
+	return p.current == 0
+}
+
+func (p *paragraph) IsLastWorld() bool {
+	return p.current >= len(p.data)
+}
+
 func (p *paragraph) NextWord() bool {
-	p.current++
+	if !p.IsLastWorld() {
+		p.current++
+	}
 	return len(p.data) > p.current
+}
+
+func (p *paragraph) PrevWord() bool {
+	if p.current >= 0 {
+		p.current--
+	}
+	return p.current >= 0
 }
 
 func (p *paragraph) Size() int {
