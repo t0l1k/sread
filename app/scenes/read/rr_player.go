@@ -11,10 +11,10 @@ type RRPlayer struct {
 	eui.View
 	bg, fg                              color.Color
 	btnReset, btnPrev, btnPlay, btnNext *eui.Button
-	lblWpm                              *eui.Text
+	lblWpm, lblIndex                    *eui.Text
 }
 
-func NewRRPlayer(fReset, fPrev, fPlay, fNext func(b *eui.Button), wpmVar *eui.IntVar) *RRPlayer {
+func NewRRPlayer(fReset, fPrev, fPlay, fNext func(b *eui.Button), wpmVar *eui.IntVar, indexVar *eui.StringVar) *RRPlayer {
 	theme := eui.GetUi().GetTheme()
 	rr := &RRPlayer{
 		bg: theme.Get(app.AppRRLabelBg),
@@ -33,6 +33,9 @@ func NewRRPlayer(fReset, fPrev, fPlay, fNext func(b *eui.Button), wpmVar *eui.In
 	rr.lblWpm = eui.NewText("")
 	rr.Add(rr.lblWpm)
 	wpmVar.Attach(rr.lblWpm)
+	rr.lblIndex = eui.NewText("")
+	rr.Add(rr.lblIndex)
+	indexVar.Attach(rr.lblIndex)
 	return rr
 }
 

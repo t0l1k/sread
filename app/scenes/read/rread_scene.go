@@ -1,6 +1,7 @@
 package scene_read
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -18,6 +19,7 @@ type RapidReadScene struct {
 	delay    int
 	dt       int
 	wpmVar   *eui.IntVar
+	idxVar   *eui.StringVar
 	book     *data.Book
 }
 
@@ -30,7 +32,8 @@ func NewRapidReadScene() *RapidReadScene {
 	s.rrLabel = NewRRLabel()
 	s.Add(s.rrLabel)
 	s.wpmVar = eui.NewIntVar(300)
-	s.rrPlayer = NewRRPlayer(s.fReset, s.fPrev, s.fPlay, s.fNext, s.wpmVar)
+	s.idxVar = eui.NewStringVar("")
+	s.rrPlayer = NewRRPlayer(s.fReset, s.fPrev, s.fPlay, s.fNext, s.wpmVar, s.idxVar)
 	s.Add(s.rrPlayer)
 	return s
 }
@@ -83,7 +86,8 @@ func (r *RapidReadScene) getNextWord() {
 	if r.book.GetParagraph().NextWord() {
 		word := r.book.GetParagraph().Value()
 		r.rrLabel.SetText(word)
-		log.Printf("read:%v, (%v/%v)\n", word, r.book.GetParagraph().Index(), r.book.GetParagraph().Size())
+		str := fmt.Sprintf("(%v/%v)", r.book.GetParagraph().Index()+1, r.book.GetParagraph().Size())
+		r.idxVar.Set(str)
 	} else if r.book.GetParagraph().IsLastWorld() {
 		r.book.SetStatus(data.Finished)
 		r.inGame = false
