@@ -3,7 +3,6 @@ module github.com/t0l1k/sread
 go 1.18
 
 require (
-	github.com/google/uuid v1.4.0
 	github.com/hajimehoshi/ebiten/v2 v2.6.2
 	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/t0l1k/eui v0.0.0-20231120175903-d3a8f2a9fbc9

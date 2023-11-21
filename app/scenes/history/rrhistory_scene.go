@@ -1,6 +1,8 @@
 package scene_history
 
 import (
+	"os"
+
 	"github.com/t0l1k/eui"
 	"github.com/t0l1k/sread/app/data"
 	scene_read "github.com/t0l1k/sread/app/scenes/read"
@@ -8,23 +10,26 @@ import (
 
 type RRHistoryScene struct {
 	eui.SceneBase
-	topBar    *eui.TopBar
-	filesList *eui.ListView
+	topBar   *eui.TopBar
+	listView *eui.ListView
 }
 
 func NewRRHistoryScene() *RRHistoryScene {
 	s := &RRHistoryScene{}
 	s.topBar = eui.NewTopBar("Загрузить из истории чтения")
 	s.Add(s.topBar)
-	s.filesList = eui.NewListView()
-	s.Add(s.filesList)
+	s.listView = eui.NewListView()
+	s.Add(s.listView)
 	return s
 }
 
 func (s *RRHistoryScene) setupHistory() {
+	if _, err := os.Stat("texts"); os.IsNotExist(err) {
+		return
+	}
 	for _, v := range data.GetDb().GetNames() {
 		btn := eui.NewButton(v, s.loadBook)
-		s.filesList.Add(btn)
+		s.listView.Add(btn)
 	}
 }
 
@@ -48,6 +53,6 @@ func (r *RRHistoryScene) Resize() {
 	w2, h2 := int(float64(w0)*0.9), h1
 	x := (w0 - w2) / 2
 	y := h
-	r.filesList.Resize([]int{x, y, w2, h2})
-	r.filesList.Itemsize(h)
+	r.listView.Resize([]int{x, y, w2, h2})
+	r.listView.Itemsize(h)
 }

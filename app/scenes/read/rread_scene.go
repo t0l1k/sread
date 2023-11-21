@@ -61,7 +61,7 @@ func (r *RapidReadScene) SetDelay(delay int) int {
 func (r *RapidReadScene) LoadBookFromHistory(filename string) {
 	r.book = data.LoadBookByFilename(filename)
 	r.book.Setup()
-	log.Printf("Звгружено:%v из истории с %v.", r.book.GetFileName(), r.book.GetIndex())
+	log.Printf("Звгружено:%v из истории с %v.", r.book.GetName(), r.book.GetIndex())
 	if r.book.GetStatus() == data.Finished {
 		r.book.SetIndex(0)
 		r.book.SetStatus(data.InReading)
@@ -78,7 +78,6 @@ func (r *RapidReadScene) LoadBookFromClipboard() {
 	r.book = data.LoadBookFromClipboardAndSave()
 	r.getNextWord()
 	r.book.SetStatus(data.InReading)
-	// r.inGame = true
 	log.Println("Читать из буфера обмена")
 }
 
