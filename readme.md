@@ -25,3 +25,9 @@
 Настройки это скорость по умолчанию. 
 
 Еще хорошо показывать фотографии в тексте, которые попадают в выделение, для этого следует показать появлением кнопки, что есть иллюстрации и после паузы можно будет открыть и их рассмотреть подробнее и ближе.
+
+
+$ gomobile build -androidapi=19 -target=android github.com/t0l1k/sread/cmd/sread
+$ adb devices -l
+$ adb -s <ID> install sread.apk
+$ adb logcat |grep "GoLog"

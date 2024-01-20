@@ -17,16 +17,16 @@ func (p *paragraph) Add(value string) {
 	p.data = append(p.data, value)
 }
 
-func (p *paragraph) SetWord(idx int) {
+func (p *paragraph) Index() int {
+	return p.current
+}
+
+func (p *paragraph) SetIndex(idx int) {
 	p.current = idx - 1
 }
 
 func (p *paragraph) Value() string {
 	return p.data[p.current]
-}
-
-func (p *paragraph) Index() int {
-	return p.current
 }
 
 func (p *paragraph) IsFirstWorld() bool {

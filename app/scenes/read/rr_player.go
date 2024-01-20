@@ -7,6 +7,13 @@ import (
 	"github.com/t0l1k/sread/app"
 )
 
+const (
+	bReset = "|<<"
+	bPrev  = "|<"
+	bPlay  = ">"
+	bNext  = ">|"
+)
+
 type RRPlayer struct {
 	eui.View
 	bg, fg                              color.Color
@@ -14,7 +21,7 @@ type RRPlayer struct {
 	lblWpm, lblIndex                    *eui.Text
 }
 
-func NewRRPlayer(fReset, fPrev, fPlay, fNext func(b *eui.Button), wpmVar *eui.IntVar, indexVar *eui.StringVar) *RRPlayer {
+func NewRRPlayer(btnLogic func(b *eui.Button), wpmVar *eui.IntVar, indexVar *eui.StringVar) *RRPlayer {
 	theme := eui.GetUi().GetTheme()
 	rr := &RRPlayer{
 		bg: theme.Get(app.AppRRLabelBg),
@@ -22,13 +29,13 @@ func NewRRPlayer(fReset, fPrev, fPlay, fNext func(b *eui.Button), wpmVar *eui.In
 	}
 	rr.SetupView()
 	rr.SetHorizontal()
-	rr.btnReset = eui.NewButton("|<<", fReset)
+	rr.btnReset = eui.NewButton(bReset, btnLogic)
 	rr.Add(rr.btnReset)
-	rr.btnPrev = eui.NewButton("|<", fPrev)
+	rr.btnPrev = eui.NewButton(bPrev, btnLogic)
 	rr.Add(rr.btnPrev)
-	rr.btnPlay = eui.NewButton(">", fPlay)
+	rr.btnPlay = eui.NewButton(bPlay, btnLogic)
 	rr.Add(rr.btnPlay)
-	rr.btnNext = eui.NewButton(">|", fNext)
+	rr.btnNext = eui.NewButton(bNext, btnLogic)
 	rr.Add(rr.btnNext)
 	rr.lblWpm = eui.NewText("")
 	rr.Add(rr.lblWpm)
@@ -37,10 +44,4 @@ func NewRRPlayer(fReset, fPrev, fPlay, fNext func(b *eui.Button), wpmVar *eui.In
 	rr.Add(rr.lblIndex)
 	indexVar.Attach(rr.lblIndex)
 	return rr
-}
-
-func (l *RRPlayer) Resize(value []int) {
-	l.Rect(value)
-	l.BoxLayout.Resize(value)
-	l.Dirty(true)
 }

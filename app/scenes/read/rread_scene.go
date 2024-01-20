@@ -31,27 +31,24 @@ func NewRapidReadScene() *RapidReadScene {
 	s.Add(s.topBar)
 	s.rrLabel = NewRRLabel()
 	s.Add(s.rrLabel)
-	s.wpmVar = eui.NewIntVar(300)
+	s.wpmVar = eui.NewIntVar(60)
 	s.idxVar = eui.NewStringVar("")
-	s.rrPlayer = NewRRPlayer(s.fReset, s.fPrev, s.fPlay, s.fNext, s.wpmVar, s.idxVar)
+	s.rrPlayer = NewRRPlayer(s.playerButtonLogic, s.wpmVar, s.idxVar)
 	s.Add(s.rrPlayer)
 	return s
 }
 
-func (r *RapidReadScene) fReset(b *eui.Button) {
-	r.resetRedingBook()
-}
+func (r *RapidReadScene) playerButtonLogic(b *eui.Button) {
+	if b.GetText() == bReset {
+		r.resetReadingBook()
+	} else if b.GetText() == bPrev {
+		r.wherePrevParagraph()
+	} else if b.GetText() == bNext {
+		r.whereNextParagraph()
+	} else if b.GetText() == bPlay {
+		r.toggleReading()
+	}
 
-func (r *RapidReadScene) fPrev(b *eui.Button) {
-	r.wherePrevParagraph()
-}
-
-func (r *RapidReadScene) fPlay(b *eui.Button) {
-	r.toggleReading()
-}
-
-func (r *RapidReadScene) fNext(b *eui.Button) {
-	r.whereNextParagraph()
 }
 
 func (r *RapidReadScene) SetDelay(delay int) int {
@@ -66,7 +63,7 @@ func (r *RapidReadScene) LoadBookFromHistory(filename string) {
 		r.book.SetIndex(0)
 		r.book.SetStatus(data.InReading)
 	}
-	r.book.GetParagraph().SetWord(r.book.GetIndex())
+	r.book.GetParagraph().SetIndex(r.book.GetIndex())
 	r.getNextWord()
 	r.wpmVar.Set(r.book.GetLastSpeed())
 	// ui.GetPreferences().Set("default words per minute speed", r.wordsPerMinute)
@@ -116,15 +113,15 @@ func (r *RapidReadScene) checkKeypress() {
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyRight) {
 		r.whereNextParagraph()
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyR) {
-		r.resetRedingBook()
+		r.resetReadingBook()
 	}
 }
 
-func (r *RapidReadScene) resetRedingBook() {
+func (r *RapidReadScene) resetReadingBook() {
 	r.pauseReading()
 	r.book.SetIndex(0)
 	r.book.SetStatus(data.InReading)
-	r.book.GetParagraph().SetWord(r.book.GetIndex())
+	r.book.GetParagraph().SetIndex(r.book.GetIndex())
 	r.getNextWord()
 }
 
@@ -141,7 +138,7 @@ func (r *RapidReadScene) wherePrevParagraph() {
 		}
 		i++
 		if r.book.GetParagraph().IsFirstWorld() {
-			r.resetRedingBook()
+			r.resetReadingBook()
 			return
 		}
 	}
@@ -169,9 +166,13 @@ func (r *RapidReadScene) toggleReading() {
 }
 
 func (r *RapidReadScene) Entered() {
-	r.wpmVar.Set(300)
-	r.delay = r.SetDelay(r.wpmVar.Get())
 	r.Resize()
+}
+
+func (r *RapidReadScene) Quit() {
+	r.book.SetIndex(r.book.GetParagraph().Index())
+	r.book.SetLastSpeed(r.wpmVar.Get())
+	data.GetDb().UpdateBook(r.book)
 }
 
 func (r *RapidReadScene) Update(dt int) {

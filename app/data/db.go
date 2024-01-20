@@ -78,7 +78,7 @@ func (d *Db) InsertBook(values *Book) {
 }
 
 func (d *Db) UpdateBook(values *Book) {
-	log.Println(values)
+	log.Println("Update:", values)
 	updateStr := `UPDATE "books" SET count = ? , idx = ? , lastspeed = ? , status = ? WHERE name = ?`
 	res, err := d.conn.Exec(updateStr, values.count, values.idx, values.
 		lastSpeed, values.status, values.name)

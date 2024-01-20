@@ -24,18 +24,13 @@ type Book struct {
 }
 
 func newBook() *Book {
-	speed := 300
-	return &Book{
-		count:     1,
-		lastSpeed: speed,
-		idx:       0,
-		status:    Start,
-	}
+	return &Book{}
 }
 
 func (t *Book) Setup() {
 	t.data, t.name = loadBook(t.content)
 	t.size = t.data.Size()
+	t.count++
 	log.Println("Setup book:", len(t.data.data), t.name)
 }
 
@@ -55,6 +50,10 @@ func (t *Book) GetLastSpeed() int {
 	return t.lastSpeed
 }
 
+func (t *Book) SetLastSpeed(value int) {
+	t.lastSpeed = value
+}
+
 func (t *Book) GetIndex() int {
 	return t.idx
 }
@@ -68,6 +67,6 @@ func (t *Book) GetParagraph() *paragraph {
 }
 
 func (t *Book) String() string {
-	s := fmt.Sprintf("Book:%v, read %v times, last read %v times, at speed:%v, size:%v status:%v idx:%v", t.name, t.count, t.dt, t.lastSpeed, t.size, t.status, t.idx)
+	s := fmt.Sprintf("Книга:%v, время создания %v, прочитана %v раз, скорость чтения:%v, размер:%v статус:%v закончено на:%v", t.name, t.dt, t.count, t.lastSpeed, t.size, t.status, t.idx)
 	return s
 }
