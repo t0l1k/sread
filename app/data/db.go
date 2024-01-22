@@ -137,3 +137,27 @@ func (d *Db) GetNames() []string {
 	}
 	return names
 }
+
+func (d *Db) DeleteRecords(names []string) {
+	if d.conn == nil {
+		d.Setup()
+	}
+	var (
+		res sql.Result
+		err error
+	)
+	deleteStr := `DELETE FROM "books" WHERE name = ?`
+	for _, name := range names {
+		res, err = d.conn.Exec(deleteStr, name)
+		if err != nil {
+			log.Println(deleteStr, err)
+			panic(err)
+		}
+		log.Println("01-deleted from DB record:", name)
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		panic(err)
+	}
+	log.Println("DB DELETE AFFECTED:", count)
+}

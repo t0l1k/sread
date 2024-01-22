@@ -18,7 +18,7 @@ type RRStartScene struct {
 
 func NewRRStartScene() *RRStartScene {
 	s := &RRStartScene{}
-	s.topBar = eui.NewTopBar("Помощник по быстрому чтению", nil)
+	s.topBar = eui.NewTopBar("Помошник чтения", nil)
 	s.Add(s.topBar)
 	s.topBar.SetShowStopwatch()
 	s.layout = eui.NewVLayout()
@@ -26,13 +26,13 @@ func NewRRStartScene() *RRStartScene {
 		sc := scene_read.NewRapidReadScene()
 		sc.LoadBookFromClipboard()
 		eui.GetUi().Push(sc)
-		log.Printf("Читать из буфера обмена")
+		log.Printf("Нажата Читать из буфера обмена")
 	})
 	s.layout.Add(s.btnNewClip)
 	s.btnHistory = eui.NewButton("История чтения", func(b *eui.Button) {
 		sc := scene_history.NewRRHistoryScene()
 		eui.GetUi().Push(sc)
-		log.Printf("История чтения")
+		log.Printf("Нажата История чтения")
 	})
 	s.layout.Add(s.btnHistory)
 	return s
