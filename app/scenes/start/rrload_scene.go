@@ -18,7 +18,7 @@ type RRStartScene struct {
 
 func NewRRStartScene() *RRStartScene {
 	s := &RRStartScene{}
-	s.topBar = eui.NewTopBar("Помощник по быстрому чтению")
+	s.topBar = eui.NewTopBar("Помощник по быстрому чтению", nil)
 	s.Add(s.topBar)
 	s.topBar.SetShowStopwatch()
 	s.layout = eui.NewVLayout()

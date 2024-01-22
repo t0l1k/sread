@@ -14,7 +14,9 @@ import (
 func LoadBookFromClipboardAndSave() *Book {
 	t := newBook()
 	t.dt = time.Now().Format("2006-01-02 15:04:05.000")
-	t.count = 1
+	t.count = 0
+	t.lastSpeed = 300
+	t.status = Start
 	t.content = saveTextFromClipboard()
 	t.Setup()
 	GetDb().InsertBook(t)

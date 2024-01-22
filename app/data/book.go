@@ -14,10 +14,10 @@ const (
 )
 
 type Book struct {
-	dt, name         string //create time or last access time, filename in drive, name in list
-	count, lastSpeed int    // read count, last read speed
+	dt, name         string //create time, name in list
+	count, lastSpeed int    // reads count, last read speed
 	size             int
-	idx              int // index in book, int paragraph
+	idx              int // word index in book
 	data             *paragraph
 	status           readStatus
 	content          []byte

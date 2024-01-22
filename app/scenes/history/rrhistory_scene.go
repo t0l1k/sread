@@ -16,7 +16,7 @@ type RRHistoryScene struct {
 
 func NewRRHistoryScene() *RRHistoryScene {
 	s := &RRHistoryScene{}
-	s.topBar = eui.NewTopBar("Загрузить из истории чтения")
+	s.topBar = eui.NewTopBar("Загрузить из истории чтения", nil)
 	s.Add(s.topBar)
 	s.listView = eui.NewListView()
 	s.Add(s.listView)

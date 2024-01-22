@@ -27,11 +27,11 @@ func NewRapidReadScene() *RapidReadScene {
 	s := &RapidReadScene{
 		dt: 0,
 	}
-	s.topBar = eui.NewTopBar("Чтение")
+	s.topBar = eui.NewTopBar("Чтение", nil)
 	s.Add(s.topBar)
 	s.rrLabel = NewRRLabel()
 	s.Add(s.rrLabel)
-	s.wpmVar = eui.NewIntVar(60)
+	s.wpmVar = eui.NewIntVar(300)
 	s.idxVar = eui.NewStringVar("")
 	s.rrPlayer = NewRRPlayer(s.playerButtonLogic, s.wpmVar, s.idxVar)
 	s.Add(s.rrPlayer)
@@ -65,16 +65,16 @@ func (r *RapidReadScene) LoadBookFromHistory(filename string) {
 	}
 	r.book.GetParagraph().SetIndex(r.book.GetIndex())
 	r.getNextWord()
-	r.wpmVar.Set(r.book.GetLastSpeed())
-	// ui.GetPreferences().Set("default words per minute speed", r.wordsPerMinute)
-	r.delay = r.SetDelay(r.wpmVar.Get())
-	// r.inGame = true
+	r.wpmVar.SetValue(r.book.GetLastSpeed())
+	r.delay = r.SetDelay(r.wpmVar.Value().(int))
 }
 
 func (r *RapidReadScene) LoadBookFromClipboard() {
 	r.book = data.LoadBookFromClipboardAndSave()
 	r.getNextWord()
 	r.book.SetStatus(data.InReading)
+	r.wpmVar.SetValue(r.book.GetLastSpeed())
+	r.delay = r.SetDelay(r.wpmVar.Value().(int))
 	log.Println("Читать из буфера обмена")
 }
 
@@ -83,7 +83,7 @@ func (r *RapidReadScene) getNextWord() {
 		word := r.book.GetParagraph().Value()
 		r.rrLabel.SetText(word)
 		str := fmt.Sprintf("(%v/%v)", r.book.GetParagraph().Index()+1, r.book.GetParagraph().Size())
-		r.idxVar.Set(str)
+		r.idxVar.SetValue(str)
 	} else if r.book.GetParagraph().IsLastWorld() {
 		r.book.SetStatus(data.Finished)
 		r.inGame = false
@@ -95,17 +95,17 @@ func (r *RapidReadScene) checkKeypress() {
 	if inpututil.IsKeyJustReleased(ebiten.KeySpace) {
 		r.toggleReading()
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyUp) {
-		if r.wpmVar.Get() < step*300 {
-			wpm := r.wpmVar.Get()
+		if r.wpmVar.Value().(int) < step*300 {
+			wpm := r.wpmVar.Value().(int)
 			wpm += step
-			r.wpmVar.Set(wpm)
+			r.wpmVar.SetValue(wpm)
 			r.delay = r.SetDelay(wpm)
 		}
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyDown) {
-		if r.wpmVar.Get() > step {
-			wpm := r.wpmVar.Get()
+		if r.wpmVar.Value().(int) > step {
+			wpm := r.wpmVar.Value().(int)
 			wpm -= step
-			r.wpmVar.Set(wpm)
+			r.wpmVar.SetValue(wpm)
 			r.delay = r.SetDelay(wpm)
 		}
 	} else if inpututil.IsKeyJustReleased(ebiten.KeyLeft) {
@@ -171,7 +171,7 @@ func (r *RapidReadScene) Entered() {
 
 func (r *RapidReadScene) Quit() {
 	r.book.SetIndex(r.book.GetParagraph().Index())
-	r.book.SetLastSpeed(r.wpmVar.Get())
+	r.book.SetLastSpeed(r.wpmVar.Value().(int))
 	data.GetDb().UpdateBook(r.book)
 }
 
