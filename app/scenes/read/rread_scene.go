@@ -12,15 +12,16 @@ import (
 
 type RapidReadScene struct {
 	eui.SceneBase
-	topBar   *eui.TopBar
-	rrLabel  *RRLabel
-	rrPlayer *RRPlayer
-	inGame   bool
-	delay    int
-	dt       int
-	wpmVar   *eui.IntVar
-	idxVar   *eui.StringVar
-	book     *data.Book
+	topBar          *eui.TopBar
+	rrLabel         *RRLabel
+	rrPlayer        *RRPlayer
+	inGame          bool
+	delay           int
+	dt              int
+	wpmVar          *eui.IntVar
+	idxVar          *eui.StringVar
+	book            *data.Book
+	hideTopbarTimer *eui.Timer
 }
 
 func NewRapidReadScene() *RapidReadScene {
@@ -35,6 +36,8 @@ func NewRapidReadScene() *RapidReadScene {
 	s.idxVar = eui.NewStringVar("")
 	s.rrPlayer = NewRRPlayer(s.playerButtonLogic, s.wpmVar, s.idxVar)
 	s.Add(s.rrPlayer)
+	s.hideTopbarTimer = eui.NewTimer(5000)
+	s.hideTopbarTimer.On()
 	return s
 }
 
@@ -163,6 +166,9 @@ func (r *RapidReadScene) pauseReading() {
 
 func (r *RapidReadScene) toggleReading() {
 	r.inGame = !r.inGame
+	if r.inGame {
+		r.hideTopbarTimer.On()
+	}
 }
 
 func (r *RapidReadScene) Entered() {
@@ -176,6 +182,14 @@ func (r *RapidReadScene) Quit() {
 }
 
 func (r *RapidReadScene) Update(dt int) {
+	if r.hideTopbarTimer.IsOn() {
+		r.hideTopbarTimer.Update(dt)
+		if r.hideTopbarTimer.IsDone() {
+			r.topBar.Visible(false)
+			r.hideTopbarTimer.Off()
+			log.Println("timer done: hide topbar")
+		}
+	}
 	r.SceneBase.Update(dt)
 	if r.inGame {
 		r.dt += dt
@@ -183,6 +197,8 @@ func (r *RapidReadScene) Update(dt int) {
 			r.dt -= r.delay
 			r.getNextWord()
 		}
+	} else {
+		r.topBar.Visible(true)
 	}
 	r.checkKeypress()
 }
