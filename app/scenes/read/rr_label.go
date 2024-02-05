@@ -1,8 +1,6 @@
 package scene_read
 
 import (
-	"image/color"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -13,32 +11,18 @@ import (
 
 type RRLabel struct {
 	eui.DrawableBase
-	image            *ebiten.Image
-	text             string
-	bg, fg, fgActive color.Color
-	fontFace         font.Face
-	glyphs           []text.Glyph
-	y                int
+	text     string
+	fontFace font.Face
+	glyphs   []text.Glyph
+	y        int
 }
 
 func NewRRLabel() *RRLabel {
 	theme := eui.GetUi().GetTheme()
-	rr := &RRLabel{
-		bg:       theme.Get(app.AppRRLabelBg),
-		fg:       theme.Get(app.AppRRLabelFg),
-		fgActive: theme.Get(app.AppRRLabelFgActive),
-	}
+	rr := &RRLabel{}
+	rr.Bg(theme.Get(app.AppRRLabelBg))
+	rr.Fg(theme.Get(app.AppRRLabelFg))
 	return rr
-}
-
-func (l *RRLabel) Draw(surface *ebiten.Image) {
-	if l.Dirty {
-		l.Layout()
-	}
-	op := &ebiten.DrawImageOptions{}
-	x, y := l.Rect.Pos()
-	op.GeoM.Translate(float64(x), float64(y))
-	surface.DrawImage(l.image, op)
 }
 
 func (l *RRLabel) SetText(value string) {
@@ -52,21 +36,17 @@ func (l *RRLabel) SetText(value string) {
 func (l *RRLabel) SetFontSize(value int) {
 	l.fontFace = eui.GetFonts().Get(value)
 	b := text.BoundString(l.fontFace, l.text)
-	l.y = l.Rect.CenterY() - b.Min.Y - b.Dy()/2
+	l.y = l.GetRect().CenterY() - b.Min.Y - b.Dy()/2
 	l.Dirty = true
 }
 
 func (l *RRLabel) Layout() {
-	w0, h0 := l.Rect.Size()
-	if l.image == nil {
-		l.image = ebiten.NewImage(w0, h0)
-	} else {
-		l.image.Clear()
-	}
-	l.image.Fill(l.bg)
+	w0, h0 := l.GetRect().Size()
+	l.SpriteBase.Layout()
+	l.Image().Fill(l.GetBg())
 	l.initGlyphs()
 	wordCenter := l.getCenter(l.text)
-	lblCenter := int(float64(l.Rect.W) / 4)
+	lblCenter := int(float64(l.GetRect().W) / 4)
 	var x, y int
 	if wordCenter == 1 {
 		x = lblCenter - int(l.glyphs[wordCenter-1].Image.Bounds().Dx()/2)
@@ -86,7 +66,7 @@ func (l *RRLabel) Layout() {
 			r = 255
 		}
 		op.ColorM.Scale(r, g, b, 255)
-		l.image.DrawImage(v.Image, op)
+		l.Image().DrawImage(v.Image, op)
 	}
 	l.drawAttributes(w0, h0, lblCenter)
 	l.Dirty = false
@@ -98,20 +78,20 @@ func (l *RRLabel) initGlyphs() {
 }
 
 func (l *RRLabel) drawAttributes(w, h, center int) {
-	ebitenutil.DrawLine(l.image, 0, 0, float64(w), 0, l.fg)
-	ebitenutil.DrawLine(l.image, 0, float64(h)-1, float64(w), float64(h)-1, l.fg)
-	margin := int(float64(l.Rect.GetLowestSize()) * 0.15)
+	ebitenutil.DrawLine(l.Image(), 0, 0, float64(w), 0, l.GetFg())
+	ebitenutil.DrawLine(l.Image(), 0, float64(h)-1, float64(w), float64(h)-1, l.GetFg())
+	margin := int(float64(l.GetRect().GetLowestSize()) * 0.15)
 	x0 := center
-	ebitenutil.DrawLine(l.image,
+	ebitenutil.DrawLine(l.Image(),
 		float64(x0),
 		0,
 		float64(x0),
-		float64(margin), l.fg)
-	ebitenutil.DrawLine(l.image,
+		float64(margin), l.GetFg())
+	ebitenutil.DrawLine(l.Image(),
 		float64(x0),
-		float64(l.Rect.Bottom()),
+		float64(l.GetRect().Bottom()),
 		float64(x0),
-		float64(l.Rect.H-margin), l.fg)
+		float64(l.GetRect().H-margin), l.GetFg())
 }
 
 func (l *RRLabel) getCenter(word string) int {
@@ -122,8 +102,18 @@ func (l *RRLabel) getCenter(word string) int {
 	return int(float64((ln)+6)) / 4
 }
 
+func (l *RRLabel) Draw(surface *ebiten.Image) {
+	if l.Dirty {
+		l.Layout()
+	}
+	op := &ebiten.DrawImageOptions{}
+	x, y := l.GetRect().Pos()
+	op.GeoM.Translate(float64(x), float64(y))
+	surface.DrawImage(l.Image(), op)
+}
+
 func (l *RRLabel) Resize(value []int) {
-	l.Rect = eui.NewRect(value)
-	l.image = nil
-	l.Dirty = true
+	l.Rect(eui.NewRect(value))
+	l.SpriteBase.Resize(value)
+	l.ImageReset()
 }

@@ -40,14 +40,14 @@ func NewRRStartScene() *RRStartScene {
 
 func (r *RRStartScene) Update(dt int) {
 	r.SceneBase.Update(dt)
-	for _, v := range r.layout.Container {
+	for _, v := range r.layout.GetContainer() {
 		v.Update(dt)
 	}
 }
 
 func (r *RRStartScene) Draw(surface *ebiten.Image) {
 	r.SceneBase.Draw(surface)
-	for _, v := range r.layout.Container {
+	for _, v := range r.layout.GetContainer() {
 		v.Draw(surface)
 	}
 }
